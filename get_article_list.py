@@ -6,7 +6,7 @@ import requests
 import json
 from urllib.parse import urlsplit
 from urllib.parse import urlparse, parse_qs
-
+from multiprocessing import Pool
 
 cookies = {
     'g_state': '{"i_l":1,"i_p":1704462537746}',
@@ -25,6 +25,8 @@ cookies = {
     '_dd_s': 'rum=0&expire=1704510186990',
     'dd_cookie_test_c7433118-ccfd-4a1d-917b-79a50f84385d': 'test',
 }
+
+
 def gen_headers(url):
     medium_frontend_path = urlsplit(url).path
     headers = {
@@ -53,7 +55,8 @@ def gen_headers(url):
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     }
 
-def gen_json_data(is_first,page,url):
+
+def gen_json_data(is_first, page, url):
     parsed_url = urlparse(url)
     query_params = parse_qs(parsed_url.query)
     # 获取'tag'参数的值
@@ -66,7 +69,7 @@ def gen_json_data(is_first,page,url):
             {
                 'operationName': 'WebInlineTopicFeedQuery',
                 'variables': {
-                    'tagSlug': tagSlug , #'software-engineering',
+                    'tagSlug': tagSlug,  # 'software-engineering',
                     'paging': {
                         'limit': 5,
                     },
@@ -82,8 +85,8 @@ def gen_json_data(is_first,page,url):
                 'variables': {
                     'tagSlug': 'software-engineering',
                     'paging': {
-                        'to': str(page*5),
-                        'from': str((page-1)*5),
+                        'to': str(page * 5),
+                        'from': str((page - 1) * 5),
                         'limit': 5,
                     },
                     'skipCache': True,
@@ -93,7 +96,8 @@ def gen_json_data(is_first,page,url):
         ]
     return json_data
 
-def get_article_per_time(json_data,url):
+
+def get_article_per_time(json_data, url):
     a_list = []
     # cookie一定要在header中，必须的
     response = requests.post('https://medium.com/_/graphql', cookies=cookies, headers=gen_headers(url), json=json_data)
@@ -104,27 +108,39 @@ def get_article_per_time(json_data,url):
         p = item.get('post')
         clapCount = p.get('clapCount')
         mediumUrl = p.get('mediumUrl')
-        title =p.get('extendedPreviewContent').get('bodyModel').get('paragraphs')[0].get('text')
-        a_list.append([clapCount,mediumUrl,title])
+        title = p.get('extendedPreviewContent').get('bodyModel').get('paragraphs')[0].get('text')
+        a_list.append([clapCount, mediumUrl, title])
     return a_list
+
+
 def get_article_list(url):
     article_list = []
-    for page in range(3): # 10
-        if page ==0:
-            json_data = gen_json_data(True, 0,url)
+    arg_list = []
+    for page in range(10):  # 10
+        if page == 0:
+            json_data = gen_json_data(True, 0, url)
         else:
-            json_data = gen_json_data(False, page+1,url)
-        article_list.extend(get_article_per_time(json_data,url))
+            json_data = gen_json_data(False, page + 1, url)
+    arg_list.append((json_data, url))
+    with Pool(processes=4) as pool:
+        async_results = pool.starmap_async(get_article_per_time, arg_list)
+        # 等待所有进程执行完毕
+        pool.close()
+        pool.join()
+        results = async_results.get()
+        article_list.extend(results)
     return article_list
 
-#[clapCount,mediumUrl,title]
+
+# [clapCount,mediumUrl,title]
 def gen_top10_articles(url):
-    article_list= get_article_list(url)
-    article_list_sorted =sorted(article_list, key=lambda x: x[0], reverse=True)
+    article_list = get_article_list(url)
+    article_list_sorted = sorted(article_list, key=lambda x: x[0], reverse=True)
     top_10 = article_list_sorted[:10]
-    #只取两列
-    # min_data = [[item[0], item[1]] for sublist in top_10 for item in sublist]
     return top_10
 
+# import time
+# start_time = time.time()
 # x  = gen_top10_articles("https://medium.com/?tag=software-engineering")
-# print(x)
+# end_time = time.time()
+# print(len(x),end_time - start_time,"Seconds")
