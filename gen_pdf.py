@@ -16,6 +16,20 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from multiprocessing import Pool
+
+# 定义样式
+styles = getSampleStyleSheet()
+# 在样式中使用刚刚加载的中文字体
+# 请替换成你实际的中文 TrueType 字体文件路径
+chinese_font_path = 'C:\Windows\Fonts\simsun.ttc'
+pdfmetrics.registerFont(TTFont('Chinese', chinese_font_path))
+styles.add(ParagraphStyle(name='ChineseTitle', parent=styles['Heading1'], fontName='Chinese'))
+styles.add(ParagraphStyle(name='ChineseBodyText', parent=styles['BodyText'], fontName='Chinese'))
+styles.add(ParagraphStyle(name='ChineseTitle2', parent=styles['Heading2'], fontName='Chinese'))
+
+
+
 class PDFWithHeader(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 16)
@@ -132,48 +146,45 @@ def gen_pdf_by_docx2pdf(datas):
         print(e)
 
 def gen_pdf_by_reportlab(datas):
-    contents = []
-    # 定义样式
-    styles = getSampleStyleSheet()
-    # 在样式中使用刚刚加载的中文字体
-    # 请替换成你实际的中文 TrueType 字体文件路径
-    chinese_font_path = 'C:\Windows\Fonts\simsun.ttc'
-    pdfmetrics.registerFont(TTFont('Chinese', chinese_font_path))
-    styles.add(ParagraphStyle(name='ChineseTitle', parent=styles['Heading1'], fontName='Chinese'))
-    styles.add(ParagraphStyle(name='ChineseBodyText', parent=styles['BodyText'], fontName='Chinese'))
-    styles.add(ParagraphStyle(name='ChineseTitle2', parent=styles['Heading2'], fontName='Chinese'))
-
     try:
         pdf_contents = mergedata(datas)
+        arg_list = []
         for key, content in pdf_contents.items():
-            # 使用正则表达式只保留字母、数字、下划线和连字符
-            file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
-            # 创建 PDF 文档
-            doc = SimpleDocTemplate(file_name, pagesize=letter)
-
-            # 设置标题字体和大小
-            # contents.append(Paragraph(key, title_style))
-            # 添加空行
-            contents.append(Spacer(1, 12))
-            for text, type, zh in content:
-                if type == "H3":
-                    contents.append(Paragraph(text, styles['Heading1']))
-                    contents.append(Paragraph(zh, styles['ChineseTitle']))
-                    contents.append(Spacer(1, 12))
-                elif type == "H4":
-                    contents.append(Paragraph(text, styles['Heading2']))
-                    contents.append(Paragraph(zh, styles['ChineseTitle2']))
-                    contents.append(Spacer(1, 12))
-                elif type == "P":
-                    contents.append(Paragraph(text, styles['BodyText']))
-                    contents.append(Paragraph(zh, styles['ChineseBodyText']))
-            doc.build(contents)
-            # time.sleep(1)
-    except Exception as  e:
+            arg_list.append((key, content))
+        with Pool(processes=4) as pool:
+            async_results = pool.starmap_async(gen_pdf_worker, arg_list)
+            # 等待所有进程执行完毕
+            pool.close()
+            pool.join()
+            results = async_results.get()
+    except Exception as e:
         print(e)
 
+def gen_pdf_worker(key, content):
+    contents = []
+    # 使用正则表达式只保留字母、数字、下划线和连字符
+    file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
+    # 创建 PDF 文档
+    doc = SimpleDocTemplate(file_name, pagesize=letter)
 
-
+    # 设置标题字体和大小
+    # contents.append(Paragraph(key, title_style))
+    # 添加空行
+    contents.append(Spacer(1, 12))
+    for text, type, zh in content:
+        if type == "H3":
+            contents.append(Paragraph(text, styles['Heading1']))
+            contents.append(Paragraph(zh, styles['ChineseTitle']))
+            contents.append(Spacer(1, 12))
+        elif type == "H4":
+            contents.append(Paragraph(text, styles['Heading2']))
+            contents.append(Paragraph(zh, styles['ChineseTitle2']))
+            contents.append(Spacer(1, 12))
+        elif type == "P":
+            contents.append(Paragraph(text, styles['BodyText']))
+            contents.append(Paragraph(zh, styles['ChineseBodyText']))
+    doc.build(contents)
+    contents.clear()
 
 # data_a = [['a', [
 #     'I’ve used these features of Git for years across teams and projects. I’m still developing opinions around some workflows (like to squash or not) but the core tooling is powerful and flexible (and scriptable!).',

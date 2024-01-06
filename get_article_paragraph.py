@@ -68,7 +68,7 @@ def gen_json_data(url):
     return json_data
 
 
-def get_article_paragraph(url):
+def get_article_paragraph(article_name,url):
     # url ="https://andrewzuo.com/another-idiot-boldly-proclaims-that-they-cant-solve-a-basic-programming-problem-4bbdf4eeb86c"
     response = requests.post('https://andrewzuo.com/_/graphql', cookies=cookies, headers=gen_headers(url),
                              json=gen_json_data(url))
@@ -82,4 +82,4 @@ def get_article_paragraph(url):
         if type not in ("H3", "H4", "P"):
             continue
         a_list.append([text, type])
-    return a_list
+    return [article_name,a_list]
