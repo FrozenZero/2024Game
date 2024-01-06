@@ -10,8 +10,12 @@ import re
 from docx import Document
 from docx2pdf import convert
 import time
-
-
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 class PDFWithHeader(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 16)
@@ -64,7 +68,7 @@ def mergedata(data):
 
 
 # 格式[[title,[text, type],zh]]
-def gen_pdf_custom(datas):
+def gen_pdf_by_fpdf(datas):
     family ='Times'  #"Arial"
     pdf = PDFWithHeader()
     pdf.add_page()
@@ -92,35 +96,12 @@ def gen_pdf_custom(datas):
     pdf.output("files" + os.sep + file_name)
 
 
-data_a = [['a', [
-    'I’ve used these features of Git for years across teams and projects. I’m still developing opinions around some workflows (like to squash or not) but the core tooling is powerful and flexible (and scriptable!).',
-    'H3'], '1'],
-          ['b', ['中华人名 Git logs are gross to go through out of the box.', 'H4'], '1'],
-          ['a', [
-              'Using git log gives you some information. But it’s extremely high-resolution and not usually what you’re looking for.',
-              'P'], '1'],
-          ['a', [
-              'Let’s be real. These logs aren’t impressing anyone. They are boring. And they’re full of information that you don’t really need right now. You’re trying to get a high-level understanding of what has been going on in your project.',
-              'H3'], '2'],
-          ['b', ['Wow! These are some good-looking logs! There’s even a semblance of a branched tree beside it.', 'P'],
-           '1'],
-          ['a', [
-              'These logs show you who has been working on what, when changes were made, and where your changes fit into the bigger picture.',
-              'P'], '2']]
-
-# gen_pdf_custom(data_a)
-# 示例
-# pdf_file_path = "example_with_title_fpdf.pdf"
-# pdf_title = "My PDF Title"
-# pdf_content = "Hello, this is a sample PDF with a title."
-#
-# generate_pdf(pdf_file_path, pdf_title, pdf_content)
 
 
 # UnicodeEncodeError: 'latin-1' codec can't encode character '\u2019' in position 100: ordinal not in range(256)
 # 用这个，上述问题没时间解决
 # 格式[[title,[text, type],zh]]
-def gen_pdf(datas):
+def gen_pdf_by_docx2pdf(datas):
     family ='Times'  #"Arial"
     # 创建Word文档
     try:
@@ -150,4 +131,63 @@ def gen_pdf(datas):
     except Exception as  e:
         print(e)
 
-gen_pdf(data_a)
+def gen_pdf_by_reportlab(datas):
+    contents = []
+    # 定义样式
+    styles = getSampleStyleSheet()
+    # 在样式中使用刚刚加载的中文字体
+    # 请替换成你实际的中文 TrueType 字体文件路径
+    chinese_font_path = 'C:\Windows\Fonts\simsun.ttc'
+    pdfmetrics.registerFont(TTFont('Chinese', chinese_font_path))
+    styles.add(ParagraphStyle(name='ChineseTitle', parent=styles['Heading1'], fontName='Chinese'))
+    styles.add(ParagraphStyle(name='ChineseBodyText', parent=styles['BodyText'], fontName='Chinese'))
+    styles.add(ParagraphStyle(name='ChineseTitle2', parent=styles['Heading2'], fontName='Chinese'))
+
+    try:
+        pdf_contents = mergedata(datas)
+        for key, content in pdf_contents.items():
+            # 使用正则表达式只保留字母、数字、下划线和连字符
+            file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
+            # 创建 PDF 文档
+            doc = SimpleDocTemplate(file_name, pagesize=letter)
+
+            # 设置标题字体和大小
+            # contents.append(Paragraph(key, title_style))
+            # 添加空行
+            contents.append(Spacer(1, 12))
+            for text, type, zh in content:
+                if type == "H3":
+                    contents.append(Paragraph(text, styles['Heading1']))
+                    contents.append(Paragraph(zh, styles['ChineseTitle']))
+                    contents.append(Spacer(1, 12))
+                elif type == "H4":
+                    contents.append(Paragraph(text, styles['Heading2']))
+                    contents.append(Paragraph(zh, styles['ChineseTitle2']))
+                    contents.append(Spacer(1, 12))
+                elif type == "P":
+                    contents.append(Paragraph(text, styles['BodyText']))
+                    contents.append(Paragraph(zh, styles['ChineseBodyText']))
+            doc.build(contents)
+            # time.sleep(1)
+    except Exception as  e:
+        print(e)
+
+
+
+
+# data_a = [['a', [
+#     'I’ve used these features of Git for years across teams and projects. I’m still developing opinions around some workflows (like to squash or not) but the core tooling is powerful and flexible (and scriptable!).',
+#     'H3'], '日本人呀'],
+#           ['b', ['中华人名 Git logs are gross to go through out of the box.', 'H4'], '日本人呀'],
+#           ['a', [
+#               'Using git log gives you some information. But it’s extremely high-resolution and not usually what you’re looking for.',
+#               'P'], '1'],
+#           ['a', [
+#               'Let’s be real. These logs aren’t impressing anyone. They are boring. And they’re full of information that you don’t really need right now. You’re trying to get a high-level understanding of what has been going on in your project.',
+#               'H3'], '2'],
+#           ['b', ['Wow! These are some good-looking logs! There’s even a semblance of a branched tree beside it.', 'P'],
+#            '1'],
+#           ['a', [
+#               'These logs show you who has been working on what, when changes were made, and where your changes fit into the bigger picture.',
+#               'P'], '2']]
+# gen_pdf_by_reportlab(data_a)

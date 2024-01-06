@@ -109,7 +109,7 @@ def get_article_per_time(json_data,url):
     return a_list
 def get_article_list(url):
     article_list = []
-    for page in range(100): 
+    for page in range(3): # 10
         if page ==0:
             json_data = gen_json_data(True, 0,url)
         else:
