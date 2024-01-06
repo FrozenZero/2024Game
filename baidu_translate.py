@@ -20,7 +20,7 @@ salt = random.randint(32768, 65536)
 
 
 def translate(words, myurl='/api/trans/vip/translate'):
-    return "翻译API限制，回头咱就换."
+    # return "翻译API限制，回头咱就换."
     # words = 'apple'
     sign = appid + words + str(salt) + secretKey
     sign = hashlib.md5(sign.encode()).hexdigest()
