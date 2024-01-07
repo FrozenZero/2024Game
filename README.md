@@ -1,8 +1,8 @@
 # 2024Game
-tfbGame2024
-基本功能都做了一遍，想着前期将流程打通，后面再做优化和算法去优化。
+基本功能都做了一遍，想着前期将流程打通，后面再做优化和算法去优化。受限于网络，不然可以加入语音合成功能，整个在线文章语音播报，让懒的人更懒，哈哈哈，努力不就是为了懒么，人类的进步就是因为懒，所以才去创造噶。
+
 ## 目前完成情况
-1. 爬取medium网页信息(分析其后端接口，模拟请求获取数据，再解析数据)
+1. 爬取medium网页信息(分析其后端接口，模拟请求获取数据，再解析数据)，rank，top10
 2. 获取文章段落和标题（同上）
 3. 翻译-百度API（限制多）
 4. 生成pdf，目前没把图片搞进去，其实也简单
@@ -19,8 +19,8 @@ tfbGame2024
 ## 流程
 ```mermaid
 graph TB;
-ui--点击生成-->gen_top10_articles并发取文章列表
-gen_top10_articles并发取文章列表-->get_article_paragraph并发取文章段落
+ui--点击生成-->gen_top10_articles并发取文章列表排序取top
+gen_top10_articles并发取文章列表排序取top-->get_article_paragraph并发取文章段落
 get_article_paragraph并发取文章段落--queue解耦-->translate_consumer多线程消费
 translate_consumer多线程消费-->gen_pdf_by_reportlab生成pdf
 gen_pdf_by_reportlab生成pdf-->zip_files打包
