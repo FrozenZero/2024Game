@@ -13,6 +13,8 @@ import json
 
 appid = '*'  # 填写你的appid
 secretKey = '*'  # 填写你的密钥
+# appid = '20240105001932414'  # 填写你的appid
+# secretKey = 'bQnMXu9MC_G3ynLOHCJQ'  # 填写你的密钥
 httpClient = None
 fromLang = 'en'  # 原文语种
 toLang = 'zh'  # 译文语种

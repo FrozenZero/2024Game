@@ -36,15 +36,15 @@ def gen_headers(url):
         'apollographql-client-name': 'lite',
         'apollographql-client-version': 'main-20240105-172446-fe9cfbd9ba',
         'content-type': 'application/json',
-        'cookie': 'g_state={"i_l":1,"i_p":1704462537746}; _gid=GA1.2.1577861696.1704457689; lightstep_guid/medium-web=bff4aec4286ef804; lightstep_session_id=2fb2c3709e06db33; sz=1695; pr=1.5; tz=-480; nonce=syWcspAD; xsrf=Drz6WHda1hVEVKnZ; uid=ad27f7f92362; sid=1:Hlpi9gjpN7pM8u9zJnUT8EITEm0Td2ImA0pLZkXTkTtGjU3myqdYK8jtbKkHlFx1; _ga=GA1.1.1071984854.1701310103; _ga_7JY7T788PK=GS1.1.1704509245.8.1.1704509286.0.0.0; _dd_s=rum=0&expire=1704510186990; dd_cookie_test_c7433118-ccfd-4a1d-917b-79a50f84385d=test',
+        'cookie': 'g_state={"i_l":1,"i_p":1704462537746}; lightstep_guid/medium-web=bff4aec4286ef804; lightstep_session_id=2fb2c3709e06db33; sz=1695; pr=1.5; tz=-480; nonce=syWcspAD; uid=ad27f7f92362; sid=1:Hlpi9gjpN7pM8u9zJnUT8EITEm0Td2ImA0pLZkXTkTtGjU3myqdYK8jtbKkHlFx1; _ga=GA1.1.1071984854.1701310103; xsrf=dd4c2a2c8f51; _ga_7JY7T788PK=GS1.1.1704699806.12.0.1704699847.0.0.0; dd_cookie_test_1577947f-d532-458c-a643-047a1625f37f=test; _dd_s=rum=0&expire=1704700747390; dd_cookie_test_d69e4c7e-5971-4c0f-ba20-cbcb738b839c=test',
         'graphql-operation': 'WebInlineTopicFeedQuery',
         'medium-frontend-app': 'lite/main-20240105-172446-fe9cfbd9ba',
         'medium-frontend-path': medium_frontend_path,
         'medium-frontend-route': 'homepage',
         'origin': 'https://medium.com',
         'ot-tracer-sampled': 'true',
-        'ot-tracer-spanid': '2318e13c6d561287',
-        'ot-tracer-traceid': '254671192cc85808',
+        'ot-tracer-spanid': '7441ee9736437634',
+        'ot-tracer-traceid': '671194f95f854582',
         'referer': url,
         'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         'sec-ch-ua-mobile': '?0',
@@ -54,7 +54,7 @@ def gen_headers(url):
         'sec-fetch-site': 'same-origin',
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     }
-
+    return headers
 
 def gen_json_data(is_first, page, url):
     parsed_url = urlparse(url)
@@ -132,7 +132,7 @@ def get_article_per_time(json_data, url):
 #     return article_list
 def get_article_args(url):
     arg_list = []
-    for page in range(2):  # 10
+    for page in range(5):  # 10
         if page == 0:
             json_data = gen_json_data(True, 0, url)
         else:

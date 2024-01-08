@@ -4,7 +4,6 @@
 界面
 """
 import streamlit as st
-from logic_core import logic_solution
 from multiprocessing import Pool
 from get_article_list import gen_top10_articles
 from get_article_paragraph import get_article_paragraph,get_article_paragraphs
@@ -14,8 +13,8 @@ from gen_pdf import gen_pdf_by_reportlab
 import multiprocessing
 from multiprocessing import Process, Queue ,Manager
 import threading
-
-def translate_consumer(queue,result_list):
+import os
+def translate_consumer(queue,article_paragraph_arg):
     while True:
         # 从队列中获取数据
         data = queue.get()
@@ -25,9 +24,10 @@ def translate_consumer(queue,result_list):
             tmp =[]
             for d in i[1]:
                 tmp.append([d[0],d[1],translate(d[0])])
-            result_list.append([i[0],tmp])
+            article_paragraph_arg.append([i[0],tmp])
 
-def worker(a):
+
+def worker():
     try:
         top10_articles_info=[]
         with Pool(processes=4) as pool:
@@ -69,11 +69,15 @@ def worker(a):
                 # 生成pdf
                 gen_pdf_by_reportlab(translate_result)
                 # 打包
-                zip_files("./", zip_file_path="files/article.zip", suffix='.pdf')
+                script_dir = os.path.dirname(os.path.realpath(__file__))
+                # 构建文件的绝对路径
+                zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
+                # zip_files("./", zip_file_path="files/article.zip", suffix='.pdf')
+                thread1.return_value = True
     except Exception as e:
         print(e.args)
         thread1.return_value = False
-    thread1.return_value = True
+
 def generate_and_download(thread1,result_event):
     # 生成文件并保存在服务器路径
     try:
@@ -110,5 +114,5 @@ def main(thread1,result_event):
 if __name__ == "__main__":
     # 创建一个Event对象，用于通知主线程工作完成
     result_event = threading.Event()
-    thread1 = threading.Thread(target=worker, args=(1, "result_event"))
+    thread1 = threading.Thread(target=worker, args=())
     main(thread1,result_event)

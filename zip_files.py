@@ -18,5 +18,6 @@ def zip_files(folder_path,zip_file_path='files/article.zip',suffix='pdf'):
                     full_path = os.path.join(root, file)
                     # 将文件添加到ZIP文件中
                     zipf.write(full_path, os.path.relpath(full_path, folder_path))
+                    os.remove(full_path)
 
 # zip_files("./",suffix='.py')

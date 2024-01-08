@@ -76,7 +76,7 @@ def mergedata(data):
             result_dict[title].append(paragraph)
         else:
             # 如果没有该类型的键，则创建一个新的键并初始化为包含当前text的列表
-            result_dict[title] = [paragraph] #[[paragraph[0], paragraph[1], paragraph[2]]]
+            result_dict[title] = paragraph #[[paragraph[0], paragraph[1], paragraph[2]]]
 
     return result_dict
 
