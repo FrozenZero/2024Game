@@ -42,4 +42,8 @@ pip install reportlab streamlit zipfile
 ```
 streamlit run ui.py
 ```
+
+## 效果
 注意，翻译api 替换为 自己的id和密钥。
+
+![效果](1.png)
