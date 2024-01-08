@@ -113,31 +113,67 @@ def get_article_per_time(json_data, url):
     return a_list
 
 
-def get_article_list(url):
-    article_list = []
+# def get_article_list(url):
+#     article_list = []
+#     arg_list = []
+#     for page in range(10):  # 10
+#         if page == 0:
+#             json_data = gen_json_data(True, 0, url)
+#         else:
+#             json_data = gen_json_data(False, page + 1, url)
+#     arg_list.append((json_data, url))
+#     with Pool(processes=4) as pool:
+#         async_results = pool.starmap_async(get_article_per_time, arg_list)
+#         # 等待所有进程执行完毕
+#         pool.close()
+#         pool.join()
+#         results = async_results.get()
+#         article_list.extend(results)
+#     return article_list
+def get_article_args(url):
     arg_list = []
-    for page in range(10):  # 10
+    for page in range(2):  # 10
         if page == 0:
             json_data = gen_json_data(True, 0, url)
         else:
             json_data = gen_json_data(False, page + 1, url)
-    arg_list.append((json_data, url))
-    with Pool(processes=4) as pool:
-        async_results = pool.starmap_async(get_article_per_time, arg_list)
-        # 等待所有进程执行完毕
-        pool.close()
-        pool.join()
-        results = async_results.get()
-        article_list.extend(results)
-    return article_list
-
+        arg_list.append((json_data, url))
+    return arg_list
 
 # [clapCount,mediumUrl,title]
-def gen_top10_articles(url):
-    article_list = get_article_list(url)
+# def gen_top10_articles(url):
+#     article_list = get_article_list(url)[0]
+#     article_list_sorted = sorted(article_list, key=lambda x: x[0], reverse=True)
+#     top_10 = article_list_sorted[:10]
+#     return top_10
+
+def gen_top10_articles(pool):
+    arg_list= get_article_args("https://medium.com/?tag=software-engineering")
+    async_results = pool.starmap_async(get_article_per_time, arg_list)
+    # 等待所有进程执行完毕
+    pool.close()
+    pool.join()
+    article_list = []
+    tmp = async_results.get()
+    for i in tmp:
+        article_list.extend(i)
     article_list_sorted = sorted(article_list, key=lambda x: x[0], reverse=True)
     top_10 = article_list_sorted[:10]
     return top_10
+# if __name__ == "__main__":
+#     article_list = []
+#     arg_list= get_article_args("https://medium.com/?tag=software-engineering")
+#     with Pool(processes=4) as pool:
+#         async_results = pool.starmap_async(get_article_per_time, arg_list)
+#         # 等待所有进程执行完毕
+#         pool.close()
+#         pool.join()
+#         results = async_results.get()
+#         article_list.extend(results)
+#     article_list_sorted = sorted(article_list, key=lambda x: x[0], reverse=True)
+#     top_10 = article_list_sorted[:10]
+#     print(top_10)
+
 
 # import time
 # start_time = time.time()
