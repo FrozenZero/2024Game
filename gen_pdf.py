@@ -145,18 +145,17 @@ def gen_pdf_by_docx2pdf(datas):
     except Exception as  e:
         print(e)
 
-def gen_pdf_by_reportlab(datas):
+def gen_pdf_by_reportlab(datas,pool):
     try:
         pdf_contents = mergedata(datas)
         arg_list = []
         for key, content in pdf_contents.items():
             arg_list.append((key, content))
-        with Pool(processes=4) as pool:
-            async_results = pool.starmap_async(gen_pdf_worker, arg_list)
-            # 等待所有进程执行完毕
-            pool.close()
-            pool.join()
-            results = async_results.get()
+        async_results = pool.starmap_async(gen_pdf_worker, arg_list)
+        # 等待所有进程执行完毕
+        pool.close()
+        pool.join()
+        results = async_results.get()
     except Exception as e:
         print(e)
 
