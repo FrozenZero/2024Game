@@ -33,13 +33,13 @@ gen_pdf_by_reportlab生成pdf-->zip_files打包
 安装依赖
 
 ```
-pip install reportlab streamlit zipfile
+pip install reportlab gradio zipfile
 ```
 
 运行
 
 ```
-streamlit run ui.py
+python ui.py
 ```
 
 ## 效果
