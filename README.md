@@ -21,8 +21,8 @@ graph TB;
 ui--点击生成-->gen_top10_articles并发取文章列表排序取top
 gen_top10_articles并发取文章列表排序取top-->get_article_paragraph并发取文章段落
 get_article_paragraph并发取文章段落--queue解耦-->translate_consumer多线程消费
-translate_consumer多线程消费-->gen_pdf_by_reportlab生成pdf
-gen_pdf_by_reportlab生成pdf-->zip_files打包
+translate_consumer多线程消费-->gen_pdf_by_reportlab多线程生成pdf
+gen_pdf_by_reportlab多线程生成pdf-->zip_files打包
 
 ```
 
