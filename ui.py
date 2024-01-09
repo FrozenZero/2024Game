@@ -1,5 +1,5 @@
 """
-@Author  ：dlfrozen
+@Author  ：Author  ：dlfrozen
 @Date    ：2024/1/9 11:19
 Gradio 动态添加Button
 """
@@ -38,6 +38,7 @@ def worker():
         with Pool(processes=4) as pool:
             # 获取top10 文章信息  格式[[clapCount,mediumUrl,title]]
             top10_articles_info = gen_top10_articles(pool)
+            print(0)
         result_queue = Queue()
         # 创建一个Manager用于共享数据
         with Manager() as manager:
@@ -48,6 +49,7 @@ def worker():
                 article_paragraph_arg = []
                 for article in top10_articles_info:
                     article_paragraph_arg.append((article[2], article[1]))
+                # [364, 'https://medium.com/@techsuneel99/design-patterns-in-node-js-31211904903e', 'Design Patterns in Node.js']
                 # 获取文章的段落信息，使用map_async函数并行调用函数get_article_paragraph，并将结果放入队列,队列格式[article,[[text, type]]]
                 async_results = get_article_paragraphs(pool, article_paragraph_arg, result_queue)
                 num_consumers = 2
@@ -70,6 +72,7 @@ def worker():
                 # 等get_article_paragraph执行完
                 tmp = async_results.get()
                 translate_result = list(shared_result_list)
+                print(3)
 
         # 生成pdf
         with Pool(processes=4) as pool1:
@@ -79,13 +82,19 @@ def worker():
             pool1.join()
             results = async_results1.get()
         # 打包
+        print(4)
         script_dir = os.path.dirname(os.path.realpath(__file__))
         # 构建文件的绝对路径
+        print(5)
         zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
         return True
+        # status["exec_result"] = True
+        # event.set()
     except Exception as e:
         print(e.args)
         return False
+        # status["exec_result"] = False
+        # event.set()
 
 
 
@@ -102,11 +111,18 @@ def greet(result):
 
 def main():
     try:
+        # status = {"exec_result": False}
+        # # 创建一个Event对象，用于通知主线程工作完成
+        # result_event = threading.Event()
+        # thread1 = threading.Thread(target=worker, args=(result_event,status))
+        # # 启动线程
+        # thread1.start()
+        # # 等待工作完成
+        # result_event.wait()
         result= worker()
         print(10)
         download_btn = [gr.Button(value="文件生成失败", visible=True)]
         if result:
-            print("a")
             download_btn = [gr.Button(value="Download", visible=True,
                                       link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
         unvisible_btn = [gr.Button(visible=False, value="") for _ in range(1)]
