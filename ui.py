@@ -38,7 +38,6 @@ def worker():
         with Pool(processes=4) as pool:
             # 获取top10 文章信息  格式[[clapCount,mediumUrl,title]]
             top10_articles_info = gen_top10_articles(pool)
-            print(0)
         result_queue = Queue()
         # 创建一个Manager用于共享数据
         with Manager() as manager:
@@ -72,7 +71,6 @@ def worker():
                 # 等get_article_paragraph执行完
                 tmp = async_results.get()
                 translate_result = list(shared_result_list)
-                print(3)
 
         # 生成pdf
         with Pool(processes=4) as pool1:
@@ -88,13 +86,9 @@ def worker():
         print(5)
         zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
         return True
-        # status["exec_result"] = True
-        # event.set()
     except Exception as e:
         print(e.args)
         return False
-        # status["exec_result"] = False
-        # event.set()
 
 
 
@@ -111,23 +105,13 @@ def greet(result):
 
 def main():
     try:
-        # status = {"exec_result": False}
-        # # 创建一个Event对象，用于通知主线程工作完成
-        # result_event = threading.Event()
-        # thread1 = threading.Thread(target=worker, args=(result_event,status))
-        # # 启动线程
-        # thread1.start()
-        # # 等待工作完成
-        # result_event.wait()
         result= worker()
-        print(10)
         download_btn = [gr.Button(value="文件生成失败", visible=True)]
         if result:
             download_btn = [gr.Button(value="Download", visible=True,
                                       link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
         unvisible_btn = [gr.Button(visible=False, value="") for _ in range(1)]
         return download_btn + unvisible_btn
-        # greet(status['exec_result'])
     except Exception as e:
         print(e)
         return [gr.Button(visible=True, value="文件生成失败") for _ in range(2)]
@@ -138,7 +122,7 @@ if __name__ == "__main__":
 
     with gr.Blocks() as demo:
         with gr.Row():
-            for i in range(2):  # 2 ，这里的数字决定了greet或words函数中的组件数量，必须对上。
+            for i in range(2): 
                 btn = gr.Button(visible=False)
                 btn_list.append(btn)
         b = gr.Button("后台生成文件")
