@@ -75,22 +75,6 @@ def gen_json_data(url):
     return json_data
 
 
-# def get_article_paragraph(args):
-#     article_name, url =args
-#     # url ="https://andrewzuo.com/another-idiot-boldly-proclaims-that-they-cant-solve-a-basic-programming-problem-4bbdf4eeb86c"
-#     response = requests.post('https://andrewzuo.com/_/graphql', cookies=cookies, headers=gen_headers(url),
-#                              json=gen_json_data(url))
-#     a_list = []
-#     content = json.loads(response.text)
-#     items = content[0].get('data').get('post').get('viewerEdge').get('fullContent').get('bodyModel').get("paragraphs")
-#
-#     for item in items:
-#         text = item.get('text')
-#         type = item.get('type')  # H3 H4 P IMG
-#         if type not in ("H3", "H4", "P"):
-#             continue
-#         a_list.append([text, type])
-#     return [article_name,a_list]
 
 def get_article_paragraph(args):
     article_name, url =args
