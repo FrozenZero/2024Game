@@ -1,5 +1,5 @@
 """
-@Author  ：段龙
+@Author  ：dlfrozen
 @Date    ：2024/1/5 23:00
 """
 # 百度通用翻译API,不包含词典、tts语音合成等资源，如有相关需求请联系translate_api@baidu.com
