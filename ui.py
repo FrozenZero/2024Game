@@ -1,20 +1,24 @@
 """
 @Author  ：段龙
-@Date    ：2024/1/6 15:21
-界面
+@Date    ：2024/1/9 11:19
+Gradio 动态添加Button
 """
-import streamlit as st
-from multiprocessing import Pool
-from get_article_list import gen_top10_articles
-from get_article_paragraph import get_article_paragraph,get_article_paragraphs
-from baidu_translate import translate
-from zip_files import zip_files
-from gen_pdf import gen_pdf_by_reportlab
+
 import multiprocessing
-from multiprocessing import Process, Queue ,Manager
-import threading
 import os
-def translate_consumer(queue,article_paragraph_arg):
+from multiprocessing import Pool
+from multiprocessing import Process, Queue, Manager
+
+import gradio as gr
+
+from baidu_translate import translate
+from gen_pdf import gen_pdf_by_reportlab
+from get_article_list import gen_top10_articles
+from get_article_paragraph import get_article_paragraphs
+from zip_files import zip_files
+
+
+def translate_consumer(queue,shared_result_list):
     while True:
         # 从队列中获取数据
         data = queue.get()
@@ -24,15 +28,18 @@ def translate_consumer(queue,article_paragraph_arg):
             tmp =[]
             for d in i[1]:
                 tmp.append([d[0],d[1],translate(d[0])])
-            article_paragraph_arg.append([i[0],tmp])
+            shared_result_list.append([i[0],tmp])
 
 
 def worker():
+
     try:
+        # 共享状态变量
         top10_articles_info=[]
         with Pool(processes=4) as pool:
             # 获取top10 文章信息  格式[[clapCount,mediumUrl,title]]
             top10_articles_info = gen_top10_articles(pool)
+            print(0)
         result_queue = Queue()
         # 创建一个Manager用于共享数据
         with Manager() as manager:
@@ -66,53 +73,80 @@ def worker():
                 # 等get_article_paragraph执行完
                 tmp = async_results.get()
                 translate_result = list(shared_result_list)
+                print(3)
+
                 # 生成pdf
-                gen_pdf_by_reportlab(translate_result)
-                # 打包
-                script_dir = os.path.dirname(os.path.realpath(__file__))
-                # 构建文件的绝对路径
-                zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
-                # zip_files("./", zip_file_path="files/article.zip", suffix='.pdf')
-                thread1.return_value = True
+                # 生成pdf
+        with Pool(processes=4) as pool1:
+            async_results1 = gen_pdf_by_reportlab(translate_result, pool1)
+            # 等待所有进程执行完毕
+            pool1.close()
+            pool1.join()
+            results = async_results1.get()
+        # 打包
+        print(4)
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        # 构建文件的绝对路径
+        print(5)
+        zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
+        return True
+        # status["exec_result"] = True
+        # event.set()
     except Exception as e:
         print(e.args)
-        thread1.return_value = False
+        return False
+        # status["exec_result"] = False
+        # event.set()
 
-def generate_and_download(thread1,result_event):
+
+
+def greet(result):
+    if result:
+        download_btn = [gr.Button(value="Download", visible=True,
+                              link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
+    else:
+        download_btn = [gr.Button(value="文件生成失败", visible=True)]
+    unvisible_btn = [gr.Button(visible=False, value="")for _ in range(1)]
+    return download_btn + unvisible_btn
+
+
+
+def main():
+    # 添加生成按钮
     # 生成文件并保存在服务器路径
     try:
-        # 启动线程
-        thread1.start()
-        # 等待工作完成
-        result_event.wait()
-        result = thread1.return_value if hasattr(thread1, 'return_value') else None
+        # status = {"exec_result": False}
+        # # 创建一个Event对象，用于通知主线程工作完成
+        # result_event = threading.Event()
+        # thread1 = threading.Thread(target=worker, args=(result_event,status))
+        # # 启动线程
+        # thread1.start()
+        # # 等待工作完成
+        # result_event.wait()
+        result= worker()
+        print(10)
+        download_btn = [gr.Button(value="文件生成失败", visible=True)]
         if result:
-            server_file_path = "D:\ml\source\duan\cio_task\spider\\utils\\files\\article.zip"
-            # 提供下载链接
-            with open(server_file_path, "r") as file:
-                st.download_button(
-                    label="Download Generated File",
-                    key="download_button",
-                    file_name="generated_file.txt",
-                    data=file.read(),
-                    mime="text/plain",
-                )
-        else:
-            st.text("failed process~~")
+            print("a")
+            download_btn = [gr.Button(value="Download", visible=True,
+                                      link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
+        unvisible_btn = [gr.Button(visible=False, value="") for _ in range(1)]
+        return download_btn + unvisible_btn
+        # greet(status['exec_result'])
     except Exception as e:
         print(e)
-
-
-def main(thread1,result_event):
-    st.title("生成medium的文章压缩包，点击生成后稍等片刻，即可出现下载文件。")
-
-    # 添加生成按钮
-    if st.button("生成"):
-        generate_and_download(thread1,result_event)
+        return [gr.Button(visible=True, value="文件生成失败") for _ in range(2)]
 
 
 if __name__ == "__main__":
-    # 创建一个Event对象，用于通知主线程工作完成
-    result_event = threading.Event()
-    thread1 = threading.Thread(target=worker, args=())
-    main(thread1,result_event)
+    btn_list = []
+
+    with gr.Blocks() as demo:
+        with gr.Row():
+            for i in range(2):  # 2 ，这里的数字决定了greet或words函数中的组件数量，必须对上。
+                btn = gr.Button(visible=False)
+                btn_list.append(btn)
+        b = gr.Button("后台生成文件")
+        b.click(main, None, btn_list)
+
+    demo.launch(share=True,allowed_paths=["D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip"])

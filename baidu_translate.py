@@ -13,6 +13,8 @@ import json
 
 appid = '*'  # 填写你的appid
 secretKey = '*'  # 填写你的密钥
+# appid = '20240105001932414'  # 填写你的appid
+# secretKey = 'bQnMXu9MC_G3ynLOHCJQ'  # 填写你的密钥
 httpClient = None
 fromLang = 'en'  # 原文语种
 toLang = 'zh'  # 译文语种
@@ -20,7 +22,7 @@ salt = random.randint(32768, 65536)
 
 
 def translate(words, myurl='/api/trans/vip/translate'):
-    # return "翻译API限制，回头咱就换."
+    return "翻译API限制，回头咱就换."
     # words = 'apple'
     sign = appid + words + str(salt) + secretKey
     sign = hashlib.md5(sign.encode()).hexdigest()

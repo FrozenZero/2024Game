@@ -5,10 +5,10 @@
 """
 import os
 
-from fpdf import FPDF
+# from fpdf import FPDF
 import re
-from docx import Document
-from docx2pdf import convert
+# from docx import Document
+# from docx2pdf import convert
 import time
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -30,31 +30,31 @@ styles.add(ParagraphStyle(name='ChineseTitle2', parent=styles['Heading2'], fontN
 
 
 
-class PDFWithHeader(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 16)
-        # self.cell(0, 10, 'My PDF Document', 0, 1, 'C')
-
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', 'I', 8)
-        self.cell(0, 10, 'Page %s' % self.page_no(), 0, 0, 'C')
-
-
-def generate_pdf(file_path, title, content):
-    pdf = PDFWithHeader()
-    pdf.add_page()
-
-    # 设置标题字体和大小
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, title, 0, 1, 'C')
-
-    # 设置正文字体和大小
-    pdf.set_font("Arial", size=12)
-    pdf.cell(0, 10, txt=content, ln=True, align='L')
-
-    # 保存PDF文件
-    pdf.output(file_path)
+# class PDFWithHeader(FPDF):
+#     def header(self):
+#         self.set_font('Arial', 'B', 16)
+#         # self.cell(0, 10, 'My PDF Document', 0, 1, 'C')
+#
+#     def footer(self):
+#         self.set_y(-15)
+#         self.set_font('Arial', 'I', 8)
+#         self.cell(0, 10, 'Page %s' % self.page_no(), 0, 0, 'C')
+#
+#
+# def generate_pdf(file_path, title, content):
+#     pdf = PDFWithHeader()
+#     pdf.add_page()
+#
+#     # 设置标题字体和大小
+#     pdf.set_font("Arial", 'B', 16)
+#     pdf.cell(0, 10, title, 0, 1, 'C')
+#
+#     # 设置正文字体和大小
+#     pdf.set_font("Arial", size=12)
+#     pdf.cell(0, 10, txt=content, ln=True, align='L')
+#
+#     # 保存PDF文件
+#     pdf.output(file_path)
 
 
 def clean_filename(filename):
@@ -82,32 +82,32 @@ def mergedata(data):
 
 
 # 格式[[title,[text, type],zh]]
-def gen_pdf_by_fpdf(datas):
-    family ='Times'  #"Arial"
-    pdf = PDFWithHeader()
-    pdf.add_page()
-    pdf_contents = mergedata(datas)
-    for key, content in pdf_contents.items():
-        # 使用正则表达式只保留字母、数字、下划线和连字符
-        file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
-        # 设置标题字体和大小
-        pdf.set_font(family, 'B', 16)
-        pdf.cell(0, 10, key, 0, 1, 'C')
-        for text, type, zh in content:
-            if type == "H3":
-                pdf.set_font(family, 'B', 16)
-                pdf.cell(0, 10, text, 0, 1, 'L')
-                pdf.cell(0, 10, zh, 0, 1, 'L')
-            elif type == "H4":
-                pdf.set_font(family, 'B', 14)
-                pdf.cell(0, 10, text, 0, 1, 'L')
-                pdf.cell(0, 10, zh, 0, 1, 'L')
-            elif type == "P":
-                pdf.set_font(family, size=12)
-                pdf.cell(0, 10, text, 0, 1, 'L')
-                pdf.cell(0, 10, zh, 0, 1, 'L')
-
-    pdf.output("files" + os.sep + file_name)
+# def gen_pdf_by_fpdf(datas):
+#     family ='Times'  #"Arial"
+#     pdf = PDFWithHeader()
+#     pdf.add_page()
+#     pdf_contents = mergedata(datas)
+#     for key, content in pdf_contents.items():
+#         # 使用正则表达式只保留字母、数字、下划线和连字符
+#         file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
+#         # 设置标题字体和大小
+#         pdf.set_font(family, 'B', 16)
+#         pdf.cell(0, 10, key, 0, 1, 'C')
+#         for text, type, zh in content:
+#             if type == "H3":
+#                 pdf.set_font(family, 'B', 16)
+#                 pdf.cell(0, 10, text, 0, 1, 'L')
+#                 pdf.cell(0, 10, zh, 0, 1, 'L')
+#             elif type == "H4":
+#                 pdf.set_font(family, 'B', 14)
+#                 pdf.cell(0, 10, text, 0, 1, 'L')
+#                 pdf.cell(0, 10, zh, 0, 1, 'L')
+#             elif type == "P":
+#                 pdf.set_font(family, size=12)
+#                 pdf.cell(0, 10, text, 0, 1, 'L')
+#                 pdf.cell(0, 10, zh, 0, 1, 'L')
+#
+#     pdf.output("files" + os.sep + file_name)
 
 
 
@@ -115,35 +115,35 @@ def gen_pdf_by_fpdf(datas):
 # UnicodeEncodeError: 'latin-1' codec can't encode character '\u2019' in position 100: ordinal not in range(256)
 # 用这个，上述问题没时间解决
 # 格式[[title,[text, type],zh]]
-def gen_pdf_by_docx2pdf(datas):
-    family ='Times'  #"Arial"
-    # 创建Word文档
-    try:
-        pdf_contents = mergedata(datas)
-        for key, content in pdf_contents.items():
-            doc = Document()
-            # 使用正则表达式只保留字母、数字、下划线和连字符
-            file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
-            docx_name = re.sub(r'[^\w\-\.]', '_', key) + ".docx"
-            # 设置标题字体和大小
-            doc.add_heading(key, level=1)
-            for text, type, zh in content:
-                if type == "H3":
-                    doc.add_heading(text, level=2)
-                    doc.add_heading(zh, level=2)
-                elif type == "H4":
-                    doc.add_heading(text, level=3)
-                    doc.add_heading(zh, level=3)
-                elif type == "P":
-                    doc.add_paragraph(text)
-                    doc.add_paragraph(zh)
-            doc.save(docx_name)
-            convert(docx_name, file_name)
-            if os.path.exists(docx_name):
-                os.remove(docx_name)
-            time.sleep(1)
-    except Exception as  e:
-        print(e)
+# def gen_pdf_by_docx2pdf(datas):
+#     family ='Times'  #"Arial"
+#     # 创建Word文档
+#     try:
+#         pdf_contents = mergedata(datas)
+#         for key, content in pdf_contents.items():
+#             doc = Document()
+#             # 使用正则表达式只保留字母、数字、下划线和连字符
+#             file_name = re.sub(r'[^\w\-\.]', '_', key) + ".pdf"
+#             docx_name = re.sub(r'[^\w\-\.]', '_', key) + ".docx"
+#             # 设置标题字体和大小
+#             doc.add_heading(key, level=1)
+#             for text, type, zh in content:
+#                 if type == "H3":
+#                     doc.add_heading(text, level=2)
+#                     doc.add_heading(zh, level=2)
+#                 elif type == "H4":
+#                     doc.add_heading(text, level=3)
+#                     doc.add_heading(zh, level=3)
+#                 elif type == "P":
+#                     doc.add_paragraph(text)
+#                     doc.add_paragraph(zh)
+#             doc.save(docx_name)
+#             convert(docx_name, file_name)
+#             if os.path.exists(docx_name):
+#                 os.remove(docx_name)
+#             time.sleep(1)
+#     except Exception as  e:
+#         print(e)
 
 def gen_pdf_by_reportlab(datas,pool):
     try:
@@ -152,12 +152,10 @@ def gen_pdf_by_reportlab(datas,pool):
         for key, content in pdf_contents.items():
             arg_list.append((key, content))
         async_results = pool.starmap_async(gen_pdf_worker, arg_list)
-        # 等待所有进程执行完毕
-        pool.close()
-        pool.join()
-        results = async_results.get()
+        return async_results
     except Exception as e:
         print(e)
+        return None
 
 def gen_pdf_worker(key, content):
     contents = []
