@@ -16,6 +16,7 @@ from gen_pdf import gen_pdf_by_reportlab
 from get_article_list import gen_top10_articles
 from get_article_paragraph import get_article_paragraphs
 from zip_files import zip_files
+from gen_tts import gen_tts
 
 
 def translate_consumer(queue,shared_result_list):
@@ -33,11 +34,14 @@ def translate_consumer(queue,shared_result_list):
 
 def worker():
     try:
+        # 构建文件的绝对路径
+        script_dir = os.path.dirname(os.path.realpath(__file__))
         # 共享状态变量
         top10_articles_info=[]
         with Pool(processes=4) as pool:
             # 获取top10 文章信息  格式[[clapCount,mediumUrl,title]]
             top10_articles_info = gen_top10_articles(pool)
+            print(0)
         result_queue = Queue()
         # 创建一个Manager用于共享数据
         with Manager() as manager:
@@ -71,6 +75,7 @@ def worker():
                 # 等get_article_paragraph执行完
                 tmp = async_results.get()
                 translate_result = list(shared_result_list)
+                print(3)
 
         # 生成pdf
         with Pool(processes=4) as pool1:
@@ -79,16 +84,22 @@ def worker():
             pool1.close()
             pool1.join()
             results = async_results1.get()
+        # 生成TTS
+        async_results2 = gen_tts(translate_result, os.path.join(script_dir, "files\\"))
+        print("gennerate audio file result :",async_results2)
         # 打包
         print(4)
-        script_dir = os.path.dirname(os.path.realpath(__file__))
         # 构建文件的绝对路径
         print(5)
         zip_files(script_dir, zip_file_path= os.path.join(script_dir, "files/article.zip"), suffix='.pdf')
         return True
+        # status["exec_result"] = True
+        # event.set()
     except Exception as e:
         print(e.args)
         return False
+        # status["exec_result"] = False
+        # event.set()
 
 
 
@@ -105,13 +116,41 @@ def greet(result):
 
 def main():
     try:
+        # status = {"exec_result": False}
+        # # 创建一个Event对象，用于通知主线程工作完成
+        # result_event = threading.Event()
+        # thread1 = threading.Thread(target=worker, args=(result_event,status))
+        # # 启动线程
+        # thread1.start()
+        # # 等待工作完成
+        # result_event.wait()
         result= worker()
-        download_btn = [gr.Button(value="文件生成失败", visible=True)]
+        result= True
+        print(10)
+
+
+        unvisible_btn = [gr.Button(value="文件生成失败", visible=True)]
         if result:
+            import fnmatch
+            directory = "D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\"
+            files = os.listdir(directory)
+            wav_files = [f for f in files if fnmatch.fnmatch(f, '*.wav')]
             download_btn = [gr.Button(value="Download", visible=True,
                                       link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
-        unvisible_btn = [gr.Button(visible=False, value="") for _ in range(1)]
+            for wav_file in wav_files:
+                full_path = os.path.join(directory, wav_file)
+                download_btn.append(gr.Button(value=wav_file, visible=True,
+                                      link="/file=" + full_path))
+        else:
+            unvisible_btn = [gr.Button(value="文件生成失败", visible=True) for _ in range(11)]
         return download_btn + unvisible_btn
+
+        # download_btn = [gr.Button(value="文件生成失败", visible=True)]
+        # if result:
+        #     download_btn = [gr.Button(value="Download", visible=True,
+        #                               link="/file=D:\\ml\\source\\duan\\game2024\\spider\\utils\\parallel_process\\files\\article.zip")]
+        # unvisible_btn = [gr.Button(visible=False, value="") for _ in range(1)]
+        # return download_btn + unvisible_btn
     except Exception as e:
         print(e)
         return [gr.Button(visible=True, value="文件生成失败") for _ in range(2)]
@@ -122,7 +161,7 @@ if __name__ == "__main__":
 
     with gr.Blocks() as demo:
         with gr.Row():
-            for i in range(2): 
+            for i in range(12):  # 2 ，这里的数字决定了greet或words函数中的组件数量，必须对上。
                 btn = gr.Button(visible=False)
                 btn_list.append(btn)
         b = gr.Button("后台生成文件")

@@ -113,17 +113,15 @@ def get_article_per_time(json_data, url):
     return a_list
 
 
-
 def get_article_args(url):
     arg_list = []
-    for page in range(5):  # 10
+    for page in range(5):  # 取450条的时候就基本取不到了
         if page == 0:
             json_data = gen_json_data(True, 0, url)
         else:
             json_data = gen_json_data(False, page + 1, url)
         arg_list.append((json_data, url))
     return arg_list
-
 
 
 def gen_top10_articles(pool):
@@ -140,3 +138,27 @@ def gen_top10_articles(pool):
     top_10 = article_list_sorted[:10]
     return top_10
 
+
+# def aa(pool):
+#     arg_list= get_article_args("https://medium.com/?tag=software-engineering")
+#     async_results = pool.starmap_async(get_article_per_time, arg_list)
+#     # 等待所有进程执行完毕
+#     pool.close()
+#     pool.join()
+#     article_list = []
+#     tmp = async_results.get()
+#     for i in tmp:
+#         article_list.extend(i)
+#     return article_list
+#
+#
+# if __name__ == '__main__':
+#     import time
+#     start_time = time.time()
+#     print("start_time:",start_time)
+#     top10_articles_info = []
+#     with Pool(processes=10) as pool:
+#         # 获取top10 文章信息  格式[[clapCount,mediumUrl,title]]
+#         top10_articles_info = aa(pool)
+#     end_time = time.time()
+#     print(len(top10_articles_info),end_time - start_time,"Seconds")
