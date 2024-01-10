@@ -11,10 +11,13 @@ Medium的https://medium.com/_/graphql接口 并发抓取文章内容列表。然
 3. 将翻译后的内容保存成 PDF 文件：
 使用reportlab，并发的将翻译后的内容，以及标题排版后 写入 PDF 文件。fpdf、docx2pdf都有点坑~
 
-4. 打包成 ZIP 文件：
+4. 为每个文章生成语音文件，可以在线播放，也可以下载：
+使用智能模型为每个文章生成语音文件，可以在线播放，也可以下载，让用户在眼睛忙的时候，可以用耳朵听。
+
+5. 打包成 ZIP 文件：
 使用 zipfile将生成的 PDF 文件打包成一个 ZIP 文件。
 
-5. 界面集成
+6. 界面集成
 使用gradio构建简单界面，多线程交互的时候gradio、webbrowser和streamlit都试过，花了好些时间。
 
 
@@ -39,7 +42,9 @@ ui--点击生成-->gen_top10_articles并发取文章列表排序取top
 gen_top10_articles并发取文章列表排序取top-->get_article_paragraph并发取文章段落
 get_article_paragraph并发取文章段落--queue解耦-->translate_consumer多线程消费
 translate_consumer多线程消费-->gen_pdf_by_reportlab多线程生成pdf
-gen_pdf_by_reportlab多线程生成pdf-->zip_files打包
+gen_pdf_by_reportlab多线程生成pdf-->gen_tts生成语音文件
+gen_tts生成语音文件-->zip_files打包
+zip_files打包-->界面展示download下载和音频播放
 
 ```
 
